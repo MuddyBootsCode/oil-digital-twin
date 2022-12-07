@@ -10,7 +10,6 @@ const session = driver.session();
 
 // const tryout = async () => {
 //   const response = await fetch(
-//     "https://di-api.drillinginfo.com/v2/direct-access/tokens",
 //     {
 //       method: "POST",
 //       headers: {

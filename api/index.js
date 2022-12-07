@@ -1,0 +1,161 @@
+const { Neo4jGraphQL } = require("@neo4j/graphql");
+const { ApolloServer, gql } = require("apollo-server");
+const neo4j = require("neo4j-driver");
+
+const typeDefs = gql`
+  union ServiceProvider = LeaseOperator | EquipmentServiceProvider
+
+  type Lease {
+    id: ID! @id
+    name: String!
+    oilWells: [OilWell!]! @relationship(type: "LOCATED_ON", direction: IN)
+    batteries: [Battery!]! @relationship(type: "LOCATED_ON", direction: IN)
+    leaseOperator: [LeaseOperator!]!
+      @relationship(type: "SERVICED_BY", direction: OUT)
+    serviceProviders: [ServiceProvider!]!
+      @relationship(type: "SERVICED_BY", direction: OUT)
+    coordinates: [Point!]
+    SWDs: [SWD!]! @relationship(type: "LOCATED_ON", direction: IN)
+  }
+
+  type Battery {
+    id: ID! @id
+    name: String!
+    location: Point
+    vessels: [Vessel!]! @relationship(type: "LOCATED_AT", direction: IN)
+    oilWells: [OilWell!]! @relationship(type: "COLLECTED_BY", direction: IN)
+    lease: Lease! @relationship(type: "LOCATED_ON", direction: OUT)
+    leaseOperator: LeaseOperator!
+      @relationship(type: "SERVICED_BY", direction: OUT)
+    alerts: [Alert!]! @relationship(type: "HAS_ALERT", direction: OUT)
+    equipment: [Equipment!]! @relationship(type: "LOCATED_AT", direction: IN)
+    serviceProviders: [ServiceProvider!]!
+      @relationship(type: "SERVICED_BY", direction: OUT)
+    SWD: SWD @relationship(type: "COLLECTED_BY", direction: OUT)
+  }
+
+  type Vessel {
+    id: ID! @id
+    type: String!
+    battery: Battery @relationship(type: "LOCATED_AT", direction: OUT)
+    sensors: [Sensor!]! @relationship(type: "MONITORED_BY", direction: OUT)
+    alert: [Alert!]! @relationship(type: "HAS_ALERT", direction: OUT)
+  }
+
+  type Sensor {
+    id: ID! @id
+    type: String!
+    vessel: Vessel @relationship(type: "MONITORED_BY", direction: IN)
+    oilWell: OilWell @relationship(type: "MONITORED_BY", direction: IN)
+    equipment: Equipment @relationship(type: "MONITORED_BY", direction: IN)
+  }
+
+  type Equipment {
+    id: ID! @id
+    type: String!
+    battery: Battery @relationship(type: "LOCATED_AT", direction: OUT)
+    sensors: [Sensor!]! @relationship(type: "MONITORED_BY", direction: OUT)
+    serviceProviders: [ServiceProvider!]!
+      @relationship(type: "SERVICED_BY", direction: OUT)
+    maintenanceRecords: [MaintenanceRecord!]!
+      @relationship(type: "HAS_MAINTENANCE_RECORD", direction: OUT)
+    model: Model @relationship(type: "MODEL_OF", direction: OUT)
+  }
+
+  type Model {
+    id: ID! @id
+    type: String!
+    equipment: [Equipment!]! @relationship(type: "MODEL_OF", direction: IN)
+  }
+
+  type OilWell {
+    id: ID! @id
+    name: String!
+    location: Point
+    sensors: [Sensor!]! @relationship(type: "MONITORED_BY", direction: OUT)
+    battery: Battery @relationship(type: "COLLECTED_BY", direction: OUT)
+    lease: Lease! @relationship(type: "LOCATED_ON", direction: OUT)
+    leaseOperator: LeaseOperator
+      @relationship(type: "SERVICED_BY", direction: OUT)
+    serviceProviders: [ServiceProvider!]!
+      @relationship(type: "SERVICED_BY", direction: OUT)
+    maintenanceRecords: [MaintenanceRecord!]!
+      @relationship(type: "HAS_MAINTENANCE_RECORD", direction: OUT)
+  }
+
+  type LeaseOperator {
+    id: ID! @id
+    name: String!
+    wells: [OilWell!]! @relationship(type: "SERVICED_BY", direction: IN)
+    batteries: [Battery!]! @relationship(type: "SERVICED_BY", direction: IN)
+    leases: [Lease!]! @relationship(type: "SERVICED_BY", direction: IN)
+    equipment: [Equipment!]! @relationship(type: "SERVICED_BY", direction: IN)
+  }
+
+  type ServiceProvider {
+    id: ID! @id
+    type: String!
+    name: String
+    companyName: String
+    equipment: [Equipment!]! @relationship(type: "SERVICED_BY", direction: IN)
+  }
+
+  type Alert {
+    id: ID! @id
+    type: String!
+    status: String!
+    battery: Battery @relationship(type: "HAS_ALERT", direction: IN)
+    vessel: Vessel @relationship(type: "HAS_ALERT", direction: IN)
+  }
+
+  type PipelineStation {
+    id: ID! @id
+    name: String!
+    location: Point
+  }
+
+  type OilPipeline {
+    id: ID! @id
+    name: String!
+    start: Point
+    end: Point
+  }
+
+  type MaintenanceRecord {
+    id: ID! @id
+    type: String!
+    description: String!
+    date: String
+    equipment: Equipment
+      @relationship(type: "HAS_MAINTENANCE RECORD", direction: IN)
+    oilWell: OilWell
+      @relationship(type: "HAS_MAINTENANCE RECORD", direction: IN)
+    downTime: String!
+  }
+
+  type SWD {
+    id: ID! @id
+    name: String!
+    location: Point
+    lease: Lease! @relationship(type: "LOCATED_ON", direction: OUT)
+    batteries: [Battery!]! @relationship(type: "COLLECTED_BY", direction: IN)
+  }
+`;
+
+const driver = neo4j.driver(
+  "bolt://0.0.0.0:7687",
+  neo4j.auth.basic("neo4j", "newpassword")
+);
+
+const neoSchema = new Neo4jGraphQL({ typeDefs, driver });
+
+neoSchema.getSchema().then((schema) => {
+  const server = new ApolloServer({
+    schema,
+    context: { driverConfig: { database: "neo4j" } },
+  });
+
+  server.listen().then(({ url }) => {
+    console.log(`🚀 Server ready at ${url}`);
+  });
+});

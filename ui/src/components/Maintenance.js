@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import { FormControl, InputLabel, Select } from "@mui/material";
+import { FormControl, Grid, InputLabel, Select } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import LeaseOperatorInfo from "./LeaseOperatorInfo";
 import ServiceProviderInfo from "./ServiceProviderInfo";
+import PageHeader from "./PageHeader";
+import { useLocation } from "react-router-dom";
 
 const GET_SERVICE_PROVIDERS = gql`
   query ServiceProviders {
@@ -29,6 +31,7 @@ const createObjectFromId = (array) => {
 };
 
 const Maintenance = () => {
+  const location = useLocation();
   const { loading, error, data } = useQuery(GET_SERVICE_PROVIDERS);
   const [leaseOperator, setLeaseOperator] = useState("");
   const [serviceProvider, setServiceProvider] = useState("");
@@ -49,17 +52,15 @@ const Maintenance = () => {
     };
 
     return (
-      <div
+      <Grid
+        container
         style={{
           display: "flex",
           flexDirection: "column",
           width: "100vw",
         }}
       >
-        <Typography variant="h5" color="text.primary" gutterBottom>
-          Maintenance
-        </Typography>
-        <hr style={{ width: "100%" }} />
+        <PageHeader location={location} />
         <div
           style={{
             display: "flex",
@@ -125,7 +126,7 @@ const Maintenance = () => {
             ) : null
           }
         </Box>
-      </div>
+      </Grid>
     );
   }
 };

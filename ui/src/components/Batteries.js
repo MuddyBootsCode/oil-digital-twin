@@ -1,8 +1,7 @@
 import React from "react";
 import { useQuery, gql } from "@apollo/client";
 import BatteryCard from "./BatteryCard";
-import { Divider, Grid, useTheme } from "@mui/material";
-import Typography from "@mui/material/Typography";
+import { Grid, useTheme } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import PageHeader from "./PageHeader";
 
@@ -40,7 +39,7 @@ const GET_BATTERIES = gql`
   }
 `;
 
-const Batteries = (props) => {
+const Batteries = () => {
   const location = useLocation();
   const { loading, error, data } = useQuery(GET_BATTERIES);
   const theme = useTheme();

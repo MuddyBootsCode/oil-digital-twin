@@ -6,7 +6,7 @@ Use YARN to install packages in both the API and the UI Directories
 
 ## Seed Script
 
-Update /api/seed.js with your local DB username and password
+Update /api/seed.js with your local or remote Neo4j DB username and password
 run `yarn seed`
 
 ## Run Demo

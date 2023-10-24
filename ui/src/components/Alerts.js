@@ -49,7 +49,11 @@ const Alerts = () => {
           divider={<Divider flexItem />}
         >
           {alerts.map((alert) => (
-            <AlertBanner alert={alert} removeAlert={removeAlert} />
+            <AlertBanner
+              alert={alert}
+              removeAlert={removeAlert}
+              key={alert.id}
+            />
           ))}
         </Stack>
       </Grid>

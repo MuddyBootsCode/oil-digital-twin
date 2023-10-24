@@ -57,6 +57,36 @@ const GET_BATTERY = gql`
   }
 `;
 
+const randomOilData = randomData();
+
+const config = {
+  data: randomOilData,
+  xField: "date",
+  yField: "amount",
+  seriesField: "type",
+  slider: {
+    start: 0.1,
+    end: 0.2,
+  },
+  color: ["#2c4da0", "#f5a623", "#59d627"],
+  columnBackground: {
+    style: {
+      fill: "rgba(0,0,0,0.1)",
+    },
+  },
+  layout: [
+    {
+      type: "interval-adjust-position",
+    },
+    {
+      type: "interval-hide-overlap",
+    },
+    {
+      type: "adjust-color",
+    },
+  ],
+};
+
 const Battery = () => {
   const theme = useTheme();
   const { batteryId } = useParams();
@@ -65,37 +95,8 @@ const Battery = () => {
   });
   const [batteryAlerts, setBatteryAlerts] = useState([]);
 
-  const randomOilData = randomData();
   const monthlyProduction = sortProductionDataByMonth(randomOilData);
   const months = Object.keys(monthlyProduction);
-
-  const config = {
-    data: randomOilData,
-    xField: "date",
-    yField: "amount",
-    seriesField: "type",
-    slider: {
-      start: 0.1,
-      end: 0.2,
-    },
-    color: ["#2c4da0", "#f5a623", "#59d627"],
-    columnBackground: {
-      style: {
-        fill: "rgba(0,0,0,0.1)",
-      },
-    },
-    layout: [
-      {
-        type: "interval-adjust-position",
-      },
-      {
-        type: "interval-hide-overlap",
-      },
-      {
-        type: "adjust-color",
-      },
-    ],
-  };
 
   useEffect(() => {
     if (data) {
